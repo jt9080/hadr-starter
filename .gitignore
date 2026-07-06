@@ -1,0 +1,16 @@
+# Generated reports — the morning routine rebuilds these; do not commit churn.
+reports/
+*.sitrep.html
+
+# dashboard.html is the exception: it is the product, and it is committed.
+!dashboard.html
+
+# Secrets stay out of the repo and out of the agent's context.
+.env
+.env.*
+
+# Language debris — extend for whichever toolchain you pick in CLAUDE.md.
+__pycache__/
+.venv/
+node_modules/
+.DS_Store
