@@ -1,0 +1,459 @@
+<title>AI News Monitor — PRD &amp; Blindspot Pass</title>
+<style>
+  :root {
+    --paper: #FBFBFE;
+    --card: #FFFFFF;
+    --ink: #14161D;
+    --muted: #616677;
+    --line: #E5E7EF;
+    --accent: #3355EA;
+    --accent-soft: #E9ECFD;
+    --hot: #C6371F;
+    --hot-bg: #FBE7E2;
+    --warm: #9A6212;
+    --warm-bg: #FaF0DC;
+    --cool: #2C6E8F;
+    --cool-bg: #E2F0F5;
+    --code-bg: #F0F1F7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0D0F15;
+      --card: #161922;
+      --ink: #E8EAF2;
+      --muted: #8B90A3;
+      --line: #262A36;
+      --accent: #7C93FF;
+      --accent-soft: #1B2036;
+      --hot: #F0897A;
+      --hot-bg: #3A1D18;
+      --warm: #E0AC5D;
+      --warm-bg: #362A16;
+      --cool: #6FB6D4;
+      --cool-bg: #14303B;
+      --code-bg: #1B1F2A;
+    }
+  }
+  :root[data-theme="light"] {
+    --paper:#FBFBFE; --card:#FFFFFF; --ink:#14161D; --muted:#616677; --line:#E5E7EF;
+    --accent:#3355EA; --accent-soft:#E9ECFD; --hot:#C6371F; --hot-bg:#FBE7E2;
+    --warm:#9A6212; --warm-bg:#FAF0DC; --cool:#2C6E8F; --cool-bg:#E2F0F5; --code-bg:#F0F1F7;
+  }
+  :root[data-theme="dark"] {
+    --paper:#0D0F15; --card:#161922; --ink:#E8EAF2; --muted:#8B90A3; --line:#262A36;
+    --accent:#7C93FF; --accent-soft:#1B2036; --hot:#F0897A; --hot-bg:#3A1D18;
+    --warm:#E0AC5D; --warm-bg:#362A16; --cool:#6FB6D4; --cool-bg:#14303B; --code-bg:#1B1F2A;
+  }
+
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    font-size: 1.02rem; line-height: 1.6; margin: 0; padding: 3.5rem 1.25rem 5rem;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sheet { max-width: 47rem; margin: 0 auto; }
+
+  .mono, .eyebrow, .sec-num, .chip, .qref, code, pre, th, .tier, .kbd {
+    font-family: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  }
+
+  h1 { font-size: 2.05rem; line-height: 1.12; letter-spacing: -0.02em; margin: 0.4rem 0 0.7rem; text-wrap: balance; font-weight: 700; }
+  h2 { font-size: 1.32rem; letter-spacing: -0.01em; margin: 0 0 0.2rem; text-wrap: balance; font-weight: 650; }
+  h3 { font-size: 1.02rem; margin: 0 0 0.35rem; font-weight: 620; }
+  p { margin: 0 0 1rem; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+
+  .eyebrow { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); }
+  .meta { color: var(--muted); font-size: 0.88rem; margin-bottom: 2.4rem; }
+
+  .toc {
+    display: flex; flex-wrap: wrap; gap: 0.4rem 1.3rem;
+    font-size: 0.8rem; font-weight: 500; border-block: 1px solid var(--line);
+    padding: 0.8rem 0; margin-bottom: 3rem;
+  }
+  .toc a { text-decoration: none; color: var(--ink); }
+  .toc a:hover, .toc a:focus-visible { color: var(--accent); }
+  .toc .n { color: var(--accent); font-family: ui-monospace, Menlo, monospace; margin-right: 0.35em; font-size: 0.78rem; }
+
+  section { margin-bottom: 3.2rem; }
+  .sec-head { display: flex; align-items: baseline; gap: 0.7rem; margin-bottom: 1rem; }
+  .sec-num { color: var(--accent); font-size: 0.95rem; font-weight: 600; }
+  .lede { font-size: 1.04rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+  code { font-size: 0.85em; background: var(--code-bg); padding: 0.1em 0.36em; border-radius: 4px; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 1rem 1.15rem; overflow-x: auto; font-size: 0.8rem; line-height: 1.55;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  .blind { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1.05rem 1.25rem 0.9rem; margin-bottom: 0.9rem; }
+  .blind-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.55rem; align-items: center; }
+  .blind p { margin-bottom: 0.65rem; }
+  .blind p:last-child { margin-bottom: 0; }
+  .chip { font-size: 0.66rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.16rem 0.55rem; border-radius: 5px; background: var(--accent-soft); color: var(--accent); }
+  .qref { font-size: 0.7rem; color: var(--muted); }
+  .prompt-cue { border-top: 1px dashed var(--line); padding-top: 0.55rem; margin-top: 0.75rem; font-size: 0.94rem; }
+  .prompt-cue strong { color: var(--accent); font-family: ui-monospace, Menlo, monospace; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; margin-right: 0.5em; }
+
+  .tier { font-size: 0.66rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 5px; white-space: nowrap; }
+  .tier.h { background: var(--hot-bg); color: var(--hot); }
+  .tier.w { background: var(--warm-bg); color: var(--warm); }
+  .tier.c { background: var(--cool-bg); color: var(--cool); }
+
+  .slice { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1.05rem 1.25rem; margin-bottom: 0.9rem; }
+  .slice-head { display: flex; align-items: baseline; gap: 0.7rem; margin-bottom: 0.45rem; flex-wrap: wrap; }
+  .slice-head .sec-num { font-family: ui-monospace, Menlo, monospace; font-size: 0.82rem; background: var(--accent-soft); color: var(--accent); padding: 0.1rem 0.5rem; border-radius: 5px; }
+  .slice-head h3 { margin: 0; }
+  .slice .proves { color: var(--muted); font-size: 0.9rem; }
+  .slice ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+  .slice li { margin-bottom: 0.28rem; }
+
+  .table-wrap { overflow-x: auto; margin-bottom: 1rem; border: 1px solid var(--line); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+  th { text-align: left; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--line); background: var(--code-bg); white-space: nowrap; }
+  td { padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td .mono { font-size: 0.82em; }
+  .ok { color: var(--cool); font-weight: 600; }
+  .no { color: var(--hot); font-weight: 600; }
+
+  .decide { border-left: 3px solid var(--accent); padding: 0.1rem 0 0.1rem 1.05rem; margin-bottom: 1.15rem; }
+  .decide-head { font-weight: 620; font-size: 0.97rem; margin-bottom: 0.15rem; }
+  .decide p { margin-bottom: 0.3rem; }
+  .decide .val { font-size: 0.92rem; color: var(--muted); }
+  .decide .val b { color: var(--accent); font-weight: 600; }
+  .locked { font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cool); border: 1px solid var(--cool); border-radius: 4px; padding: 0.05rem 0.35rem; margin-left: 0.5rem; vertical-align: middle; font-family: ui-monospace, Menlo, monospace; }
+
+  ul.plain { padding-left: 1.25rem; margin: 0 0 1rem; }
+  ul.plain li { margin-bottom: 0.45rem; }
+
+  .foot { border-top: 1px solid var(--line); margin-top: 3rem; padding-top: 1rem; color: var(--muted); font-size: 0.82rem; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="sheet">
+  <div class="eyebrow">AI News Monitor</div>
+  <h1>Product Requirements &amp; Blindspot Pass</h1>
+  <div class="meta">
+    Draft for review · 8 July 2026 · Every feed endpoint and example below was probed live on 8 Jul 2026, ~10:00 SGT.
+  </div>
+
+  <nav class="toc" aria-label="Contents">
+    <a href="#goal"><span class="n">1</span>Goal</a>
+    <a href="#feeds"><span class="n">2</span>Feed catalog</a>
+    <a href="#blindspots"><span class="n">3</span>Blindspots</a>
+    <a href="#slices"><span class="n">4</span>Vertical slices</a>
+    <a href="#data"><span class="n">5</span>Data model</a>
+    <a href="#scope"><span class="n">6</span>Out of scope</a>
+    <a href="#decisions"><span class="n">7</span>Decisions</a>
+  </nav>
+
+  <section id="goal">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Goal</h2></div>
+    <p>
+      Every morning at 08:00 Singapore time, <code>dashboard.html</code> answers one question
+      for a reader with five minutes: <em>what shipped or broke through in AI in the last 24 hours
+      that someone building agentic systems should know about?</em> Agent-development news —
+      multiagent, subagents, skills, geospatial agents — is ranked first; the rest of AI follows.
+    </p>
+    <p>Success looks like:</p>
+    <ul class="plain">
+      <li><strong>The firehose becomes a short list.</strong> A normal day yields <strong>5–8 items</strong>, ranked, scannable in one screen — not fifty.</li>
+      <li><strong>Hot, not just new.</strong> Recency is necessary but never sufficient — a repo posted today with 12k stars belongs; one with 3 does not.</li>
+      <li><strong>Relevant, not just popular.</strong> An agent-framework release outranks a trending OCR model, even if the OCR model has more downloads.</li>
+      <li><strong>No déjà vu.</strong> Something already reported never reappears unless it materially jumps (major version, big new capability, order-of-magnitude signal change).</li>
+      <li><strong>It runs unattended.</strong> A feed being down degrades the digest; it never crashes the run, and per-feed health is always recorded.</li>
+    </ul>
+  </section>
+
+  <section id="feeds">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Feed catalog</h2></div>
+    <p class="lede">The comprehensive sweep, filtered to what is actually reachable. Every row was hit live this morning; the status column is what came back.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Source</th><th>Endpoint</th><th>Access</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Hacker News</strong></td><td class="mono">hn.algolia.com/api/v1/search_by_date</td><td class="ok">free</td><td>Launches, Show HN, discourse. Best signal-per-effort.</td></tr>
+          <tr><td><strong>GitHub</strong></td><td class="mono">api.github.com/search/repositories</td><td class="ok">free*</td><td>Trending-repo proxy (no API for the trending page itself).</td></tr>
+          <tr><td><strong>HF models</strong></td><td class="mono">huggingface.co/api/models?sort=trendingScore</td><td class="ok">free</td><td>New / trending model releases.</td></tr>
+          <tr><td><strong>HF papers</strong></td><td class="mono">huggingface.co/api/daily_papers</td><td class="ok">free</td><td>Community-curated research (a filter over arXiv).</td></tr>
+          <tr><td><strong>arXiv</strong></td><td class="mono">export.arxiv.org/api/query (https)</td><td class="warm-c">free†</td><td>Deep research: <span class="mono">cs.MA / cs.AI / cs.CL / cs.LG</span>.</td></tr>
+          <tr><td><strong>Reddit</strong></td><td class="mono">reddit.com/r/&lt;sub&gt;/top/.rss</td><td class="warm-c">RSS only‡</td><td>Practitioner chatter. JSON API is 403 without OAuth.</td></tr>
+          <tr><td><strong>Blogs + newsletters</strong></td><td class="mono">OpenAI · HF · Willison · Latent Space · smol.ai · Product Hunt</td><td class="ok">RSS</td><td>Official releases + pre-digested firehose.</td></tr>
+          <tr><td><strong>Anthropic</strong></td><td class="mono">— (no native RSS)</td><td class="no">gap</td><td>Would need scraping / a bridge. Flagged, not built.</td></tr>
+          <tr><td><strong>X / Twitter</strong></td><td class="mono">— (API paid + gated)</td><td class="no">excluded</td><td>Deliberately out of scope (see §6).</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:0.86rem; color:var(--muted)">
+      <span class="mono">*</span> GitHub: 60 req/hr unauth, 5000/hr with a token.
+      <span class="mono">†</span> arXiv: https-only, returns 429 under rapid polling — needs a polite delay.
+      <span class="mono">‡</span> Reddit RSS needs no auth but is rate-limit sensitive; the JSON API requires a registered OAuth app.
+    </p>
+  </section>
+
+  <section id="blindspots">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Blindspot pass — what these feeds don't tell you until you look</h2></div>
+    <p class="lede">
+      Each item: the natural assumption, what's actually true (with evidence from this morning's
+      probes), and how to phrase prompts so the assumption never sneaks into the build. Heat chips
+      — <span class="tier h">critical</span> <span class="tier w">watch</span> <span class="tier c">minor</span> — mark how much each one can hurt you.
+    </p>
+
+    <h3 style="margin-top:1.4rem">The one that reframes everything</h3>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">All feeds</span><span class="tier h">critical</span></div>
+      <p><strong>Unlike a disaster monitor, your problem is abundance, not scarcity.</strong>
+      There is <em>always</em> AI news — GitHub search returned <span class="mono">204,013</span>
+      matching repos this morning, HN had <span class="mono">5,387</span> stories above 150 points.
+      So the product is not detection; it is <strong>ranking</strong>. "Stay quiet when nothing
+      changed" (the instinct from a disaster feed) inverts into "cap the report and suppress what
+      you've already shown". The filter <em>is</em> the deliverable.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> a hard cap ("top 5–8, ranked") and an explicit bar, never "show me what's new" — everything is new.</p>
+    </div>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">All feeds</span><span class="tier h">critical</span></div>
+      <p><strong>One release is one story spread across every feed — joining them is the core
+      engineering problem.</strong> A new agent framework lands as a GitHub repo, an HN thread,
+      a Reddit post, a Hugging Face model, an arXiv paper, and a newsletter blurb — same day,
+      different titles, different URLs, <em>no shared identifier</em>. This is the AI-news analogue
+      of cross-feed event resolution in a disaster monitor, and it's on the critical path: without
+      clustering, your "top 8" is the same launch eight times.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> a clustering rule — same repo URL / model id / arXiv id when present, else fuzzy title + domain match — and ask for the merge decisions to be logged.</p>
+    </div>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">All feeds</span><span class="tier h">critical</span></div>
+      <p><strong>Signals aren't comparable across sources.</strong> Today: a 666-point HN story,
+      a 6,653-star repo, a paper with 92 upvotes, a model with 1.7M downloads. There is no native
+      scale on which those line up — exactly like trying to rank an earthquake against a flood.
+      You need either per-source thresholds or a normalization step before a single "top 8" is
+      even meaningful.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> per-source bars ("HN&gt;150, repo&gt;500 stars/day, paper on HF daily") rather than one global number.</p>
+    </div>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">All feeds</span><span class="tier w">watch</span></div>
+      <p><strong>"Hot" needs memory the feeds don't give you.</strong> Every feed reports a
+      <em>total</em> (stars, points, downloads), never a <em>delta</em>. Star velocity — the real
+      signal — only exists if you stored yesterday's number. This makes the state file load-bearing
+      from slice one: it's not just for suppressing repeats, it's how "rising fast" is computed at all.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> "persist each item's signal each run and rank on the 24h delta, not the absolute".</p>
+    </div>
+
+    <h3 style="margin-top:1.4rem">Per-feed small print</h3>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">Hacker News</span><span class="tier c">minor</span></div>
+      <p><strong>Points and comments diverge — and comments can mean the wrong thing.</strong>
+      A 600-point launch and a 400-point / 900-comment flame war both look "hot". A high
+      comment-to-point ratio often signals <em>controversy</em>, not a release. And
+      <code>search_by_date</code> returns week-old stories that only just crossed your threshold —
+      window on <code>created_at_i</code>, not feed position.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> "rank on points, treat a high comment/point ratio as a down-rank, window on created_at_i".</p>
+    </div>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">GitHub</span><span class="tier w">watch</span></div>
+      <p><strong>The trending page has no API, and absolute stars mislead.</strong> You proxy
+      trending via Search (<code>created:&gt;DATE&amp;sort=stars</code>), but that rewards
+      already-famous repos and misses a two-year-old framework going viral on a new release —
+      you'd need to also poll <code>pushed:</code> or a watch-list. Querying every AI term
+      overlaps and burns the 60/hr unauth limit fast, which likely forces using a token.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> "rank on stars-gained-per-day, cover new repos and a watch-list of known projects, use a PAT to stay under rate limits".</p>
+    </div>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">Hugging Face</span><span class="tier c">minor</span></div>
+      <p><strong><code>trendingScore</code> is opaque and popularity-blind to your interests.</strong>
+      This morning it surfaced an OCR model with 1.7M downloads next to an agent checkpoint with
+      375 likes. Raw HF popularity will hand you image and audio models you don't care about.
+      Daily papers is better-filtered but still spans vision/audio/video.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> "keep HF models only when the id/tags match agent-dev topics; use daily-paper upvotes as the research signal".</p>
+    </div>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">arXiv</span><span class="tier w">watch</span></div>
+      <p><strong>No hotness signal at all, and it fights back when polled.</strong> arXiv orders by
+      submission time only — a landmark paper and a forgettable one look identical. It's
+      <strong>https-only</strong> (the http host drops your query on redirect) and returns
+      <strong>429</strong> under rapid requests. Treat it as the research tier, ranked <em>through</em>
+      Hugging Face daily papers / HN rather than on its own.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> "one windowed https query per run with a delay; rank papers by HF-daily / HN attention, not by arXiv order".</p>
+    </div>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">Reddit</span><span class="tier w">watch</span></div>
+      <p><strong>The signal you'd rank on isn't in the feed you can access.</strong> The JSON API
+      (which carries upvotes/comments) returns <strong>403 without OAuth</strong>; the RSS feed is
+      open but omits the counts, giving you only its "top" ordering. Reddit is also opinion-heavy —
+      a highly-upvoted "anyone else disappointed by X?" isn't a release. Separating <em>a thing
+      shipped</em> from <em>people talking</em> is where an LLM judge earns its place.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> "use RSS ordering as the signal until an OAuth app exists; have the judge drop pure-discussion threads".</p>
+    </div>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">Blogs + newsletters</span><span class="tier c">minor</span></div>
+      <p><strong>Newsletters are digests of the same launches — role, not just source.</strong>
+      smol.ai's daily post already summarizes what HN and Reddit surfaced, so counting it as
+      independent intake double-counts. Better used as a <em>cross-check</em>: "did they cover
+      something we missed?". Also: formats vary (RSS vs Atom, <code>pubDate</code> vs
+      <code>updated</code>), and <strong>Anthropic has no feed at all</strong> — a real gap on
+      mornings it ships first.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> "treat newsletters as a completeness check, not a ranked source; flag the Anthropic gap rather than scraping fragilely".</p>
+    </div>
+
+    <div class="blind">
+      <div class="blind-tags"><span class="chip">All feeds</span><span class="tier w">watch</span></div>
+      <p><strong>Three formats, three clocks.</strong> HN gives Unix epoch seconds; RSS/Atom give
+      <code>pubDate</code>/<code>updated</code> in assorted timezones; some are date-only. Define the
+      24h window once, in UTC (<span class="mono">00:00 UTC = 08:00 Asia/Singapore</span>), convert
+      to SGT only at render. The GitHub Actions cron also speaks UTC and fires late under load — so
+      the window boundary must come from the data, not the trigger time.</p>
+      <p class="prompt-cue"><strong>prompt with</strong> "window = previous 00:00 UTC → current 00:00 UTC; store UTC; render SGT".</p>
+    </div>
+  </section>
+
+  <section id="slices">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Three vertical slices</h2></div>
+    <p class="lede">Each runs end-to-end — fetch → rank → publish <code>dashboard.html</code> — and demos on its own. Ranking starts mechanical (signals only); the LLM judge arrives in slice three, matching the "signals-first" runtime decision.</p>
+
+    <div class="slice">
+      <div class="slice-head"><span class="sec-num">S1</span><h3>One feed to one page</h3></div>
+      <p class="proves">Proves the report shape and that a raw signal threshold produces something readable.</p>
+      <ul>
+        <li>Fetch GitHub (new repos, sort by stars) <em>or</em> HN (points &gt; threshold).</li>
+        <li>Render <code>dashboard.html</code>: one card per item — what, why it matters, signal, link.</li>
+        <li>Manual run. No state, no clustering, no LLM. Feed-down shows a clear banner.</li>
+      </ul>
+    </div>
+
+    <div class="slice">
+      <div class="slice-head"><span class="sec-num">S2</span><h3>Cluster &amp; remember</h3></div>
+      <p class="proves">Proves the hard logic — cross-source story clustering, velocity, and repeat suppression.</p>
+      <ul>
+        <li>Add HN, HF, arXiv, Reddit, newsletters behind one adapter interface (a flaky feed degrades, never crashes).</li>
+        <li>Cluster the same story across sources into one <code>Item</code>; persist to <code>state.json</code>.</li>
+        <li>Rank on 24h signal <em>velocity</em> vs the stored snapshot; suppress already-reported items unless they jump. Mechanical ranking, cut to 5–8.</li>
+      </ul>
+    </div>
+
+    <div class="slice">
+      <div class="slice-head"><span class="sec-num">S3</span><h3>Judge &amp; run unattended</h3></div>
+      <p class="proves">Proves relevance ranking and trustworthy unattended operation.</p>
+      <ul>
+        <li>Add the LLM judge: rank agent-dev topics first, drop pure-discussion noise, write the one-line "why it matters". Needs <code>ANTHROPIC_API_KEY</code> as a repo secret.</li>
+        <li>Schedule at 00:00 UTC (= 08:00 SGT) — the repo carries a disabled scaffold at <code>.github/workflows/sitrep.yml.disabled</code>.</li>
+        <li>Per-feed health line; newsletter cross-check for missed stories; corrections when a reported item is retracted.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="data">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Data model</h2></div>
+    <p class="lede">Two JSON files in the repo — no database. Raw feed records are kept verbatim; the canonical <strong>Item</strong> absorbs the cross-source clustering in one place.</p>
+<pre><code>// state.json — canonical clustered stories, the agent's memory between runs
+Item {
+  id            string      // ours, stable; never a feed's id
+  kind          model | repo | paper | tool | post | discussion
+  title         string      // best available across sources
+  url           string      // canonical link
+  why           string      // one line: why it matters (LLM judge, S3+)
+  topics        string[]    // agent-dev tags: multiagent, subagent, skills, geospatial, …
+  signal        { tier: hot|warm|cool, value: number }   // normalized rank score
+  peak_signal   number      // highest signal ever seen — for jump detection
+  first_seen    string      // UTC ISO-8601 throughout
+  last_seen     string
+  reported_at   string?     // set when it appeared in a digest (repeat suppression)
+  sources       SourceRef[] // every feed record clustered into this story
+}
+
+SourceRef {
+  source        hackernews | github | huggingface | arxiv | reddit | blog
+  source_id     string      // HN objectID / repo full_name / model id / arXiv id / URL
+  url           string
+  raw_signal    { name: string, value: number }   // points, stars, upvotes, downloads
+  fetched_at    string
+}
+
+// runs.json — append-only run log (the trust artefact)
+Run {
+  run_at        string
+  window        { start, end }                     // UTC
+  feeds         { hackernews, github, … : ok | failed | stale }
+  counts        { candidates, clustered, new, resurfaced, suppressed, published }
+  published     boolean
+}</code></pre>
+    <p>
+      Clustering rule (the identity policy in one line): merge on exact match of repo URL / model id /
+      arXiv id when present; otherwise fuzzy title similarity + shared linked-domain ⇒ same story.
+      Every merge is logged in the run record so a wrong cluster is auditable.
+    </p>
+  </section>
+
+  <section id="scope">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Out of scope</h2></div>
+    <ul class="plain">
+      <li><strong>X / Twitter.</strong> API is paid and gated, scraping is fragile and ToS-risky. The newsletters already digest most X discourse.</li>
+      <li><strong>Real-time alerting.</strong> A morning digest, not a pager. No push notifications, no intra-day runs.</li>
+      <li><strong>Push delivery (email / Telegram).</strong> Deferred by decision — HTML output now, channel chosen in a later slice once the digest looks right.</li>
+      <li><strong>LLM judge in early slices.</strong> Ranking starts mechanical (signals only); the judge lands in S3.</li>
+      <li><strong>Full summarization.</strong> A one-line "why it matters", not article or paper summaries.</li>
+      <li><strong>Anthropic scraping.</strong> No native feed; flagged as a gap rather than met with a brittle scraper.</li>
+      <li><strong>Historical analytics.</strong> No trends or archive beyond the single-run diff that velocity and suppression require.</li>
+      <li><strong>Users &amp; infrastructure.</strong> No auth, no backend, no database — <code>dashboard.html</code> is a static file in the repo.</li>
+    </ul>
+  </section>
+
+  <section id="decisions">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Decisions</h2></div>
+    <p class="lede">Locked from our scoping pass — these are the product calls that shape the build. A few remain open and can wait for real data.</p>
+
+    <div class="decide">
+      <div class="decide-head">Content scope <span class="locked">locked</span></div>
+      <p class="val"><b>Broad intake</b> — launches + research + industry + informal discourse (HN, Reddit, GitHub trending) — with <b>agent-dev ranked first</b>, general AI second.</p>
+    </div>
+    <div class="decide">
+      <div class="decide-head">Ranking <span class="locked">locked</span></div>
+      <p class="val"><b>Signals shortlist first</b> (stars/velocity, points, upvotes, paper attention); <b>LLM judge added in S3</b> for relevance and de-noising.</p>
+    </div>
+    <div class="decide">
+      <div class="decide-head">Report size <span class="locked">locked</span></div>
+      <p class="val"><b>Tight: 5–8 items</b>, ranked, laid out to scan in one screen.</p>
+    </div>
+    <div class="decide">
+      <div class="decide-head">Repeat suppression <span class="locked">locked</span></div>
+      <p class="val"><b>Show once, resurface only on a material jump</b> (major version, big new capability, order-of-magnitude signal change).</p>
+    </div>
+    <div class="decide">
+      <div class="decide-head">X / Twitter <span class="locked">locked</span></div>
+      <p class="val"><b>Skipped</b> — gated API, fragile scraping; revisit only if a real gap shows up.</p>
+    </div>
+    <div class="decide">
+      <div class="decide-head">Runtime &amp; delivery <span class="locked">locked</span></div>
+      <p class="val"><b>GitHub Actions, signals-only first</b>; HTML output now, push channel deferred. Daily at <b>08:00 Asia/Singapore</b>.</p>
+    </div>
+
+    <div class="decide" style="border-color:var(--warm)">
+      <div class="decide-head">Still open — for later</div>
+      <p class="val" style="color:var(--ink)">
+        · <b style="color:var(--warm)">Reddit OAuth app</b> — register one to get upvote counts, or accept RSS "top" ordering? Decide when mechanical ranking needs the numbers.<br>
+        · <b style="color:var(--warm)">Signal normalization</b> — the per-source thresholds that make a single "top 8" meaningful; tune once real data flows.<br>
+        · <b style="color:var(--warm)"><code>ANTHROPIC_API_KEY</code></b> — needed as a repo secret at S3 for the judge.<br>
+        · <b style="color:var(--warm)">Anthropic feed gap</b> — accept it, or add a bridge later.
+      </p>
+    </div>
+  </section>
+
+  <div class="foot">
+    AI News Monitor PRD · draft v1 · evidence: live probes of
+    <span class="mono">hn.algolia.com</span>, <span class="mono">api.github.com</span>,
+    <span class="mono">huggingface.co/api</span>, <span class="mono">export.arxiv.org</span>,
+    <span class="mono">reddit.com/.rss</span>, and six blog/newsletter feeds, 8 Jul 2026 ·
+    no code is built until this document is agreed.
+  </div>
+</div>

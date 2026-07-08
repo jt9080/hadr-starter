@@ -2,56 +2,48 @@
 
 ## What this project is
 
-HADR Monitor — an agent that watches live disaster feeds (GDACS, USGS, ReliefWeb),
-filters noise, assesses what remains (what happened, where, how bad, who is affected),
-and publishes a morning situation report to `dashboard.html` at 08:30 Singapore time
-(Asia/Singapore). It runs on a schedule, unattended, and stays quiet when nothing
-has changed.
+AI News Monitor — an agent that watches live AI/ML feeds (Hacker News, GitHub,
+Hugging Face, arXiv, Reddit, plus a set of lab blogs and newsletters), filters the
+firehose down to what matters, and publishes a morning digest to `dashboard.html`
+at 08:00 Singapore time (Asia/Singapore). It runs on a schedule, unattended.
+
+The reader has five minutes. The digest answers one question: **what shipped or broke
+through in the last 24 hours that someone building agentic systems should know about?**
+Agent-development news (multiagent, subagents, skills, geospatial agents) is ranked
+first; the rest of AI follows.
+
+The hard part is not fetching — it is **ranking**. Every source is a firehose, so the
+product is the filter: hard signals (stars/velocity, HN points, upvotes, paper
+attention) build a shortlist, later refined by an LLM judge. A normal day yields 5–8
+items, not fifty. Anything already reported is suppressed unless it materially jumps
+(major version, big new capability, order-of-magnitude signal change).
 
 ## Data feeds
 
-Full details and example responses live in `feeds/`. Key facts:
+Full details, verified endpoints, and example responses live in `feeds/`. Key facts:
 
-- **GDACS** (`feeds/gdacs.md`) — multi-hazard GeoJSON event list:
-  `https://www.gdacs.org/gdacsapi/api/events/geteventlist/EVENTS4APP`.
-  Events carry colour-coded alert levels (Green/Orange/Red) and an `alertscore`.
-- **USGS** (`feeds/usgs.md`) — real-time earthquake GeoJSON, regenerated every minute:
-  `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson`.
-  Other rolling windows exist (`all_hour`, `4.5_week`, `significant_month`, …).
-- **ReliefWeb** (`feeds/reliefweb.md`) — curated, slower-moving. The v2 API requires a
-  **pre-approved appname** (403 without one) and v1 is decommissioned (410).
-  The RSS feed needs no approval: `https://reliefweb.int/disasters/rss.xml`.
+- **Hacker News** (`feeds/hackernews.md`) — free, no auth. Algolia search API:
+  `https://hn.algolia.com/api/v1/search_by_date?tags=story&numericFilters=points>N`.
+  Points and comment count are the signal.
+- **GitHub** (`feeds/github.md`) — `github.com/trending` has no API. Use the Search API as
+  a trending proxy: `api.github.com/search/repositories?q=…created:>DATE&sort=stars`.
+  60 req/hr unauth, 5000/hr with a token. Star *velocity* matters more than absolute stars.
+- **Hugging Face** (`feeds/huggingface.md`) — free. Trending models via
+  `huggingface.co/api/models?sort=trendingScore`; curated research via
+  `huggingface.co/api/daily_papers` (better filtered than raw arXiv).
+- **arXiv** (`feeds/arxiv.md`) — free Atom API, **https only**, rate-limit sensitive
+  (needs a polite delay). Categories: `cs.MA` (multiagent), `cs.AI`, `cs.CL`, `cs.LG`.
+- **Reddit** (`feeds/reddit.md`) — the JSON API returns **403 without OAuth**; the per-sub
+  RSS (`reddit.com/r/<sub>/top/.rss?t=day`) needs no auth but is rate-limit sensitive.
+- **Blogs & newsletters** (`feeds/blogs-newsletters.md`) — RSS/Atom from OpenAI, Hugging
+  Face, Simon Willison, Latent Space, smol.ai (AINews), Product Hunt AI. Anthropic has no
+  native RSS. Newsletters are useful because they pre-digest the firehose.
 
-## Repository layout
+Not used: **X/Twitter** — API is paid and gated, scraping is fragile and ToS-risky.
+Deliberately out of scope; the newsletters above already digest most X discourse.
 
-- `scripts/` — deterministic checks; anything that must give the same answer twice
-  does not belong in a prompt
-- `skills/` — one folder per skill: `SKILL.md`, supporting assets, and a note on
-  which model each step should use
-- `docs/solutions/` — reusable write-ups of solved problems; check here before
-  re-debugging something
-- `implementation-notes.md` — kept by the agent, reviewed by the human; one entry
-  per working block (decisions, open questions, deviations)
-- Expected end artefacts: `prd.html` · `system-view.html` · `dashboard.html` ·
-  `goal.md` · at least one skill
-
-## Language & tooling
-
-Not yet decided — record the choice here once the first slice is built.
-
-## Test command
-
-Not yet defined — record it here once tests exist.
-
-## Conventions
-
-- Prefer the documented feed endpoints in `feeds/`; they were verified 6 Jul 2026
-- Deterministic logic goes in `scripts/`, not in prompts
-- The dashboard build must be idempotent: no changes in the feeds means no changes
-  to `dashboard.html`
-
-## Deviations policy
-
-Anything built that departs from the PRD or this file is recorded in
-`implementation-notes.md` under **Deviations**, with the reason.
-An undocumented deviation is a bug.
+## Behaviour
+- Don't assume, always ask when unsure.
+- Challenge me and push back where appropriate.
+- Every source sits behind a small adapter so one flaky feed degrades the digest
+  instead of crashing the run. Always record per-feed health, even on a quiet day.
