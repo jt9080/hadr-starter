@@ -15,14 +15,15 @@ import json
 import os
 from urllib.request import Request, urlopen
 
-DEFAULT_BASE_URL = "https://opencode.ai/zen/v1"
-# Free Zen model — no account credits required. Override with LLM_MODEL to use a
-# paid model (e.g. gpt-5.4-mini, claude-haiku-4-5) once the workspace is funded.
-DEFAULT_MODEL = "deepseek-v4-flash-free"
+# OpenCode Go endpoint — a flat-rate subscription (not per-token credits), so its
+# models carry no marginal cost. Model ids are bare (no "opencode-go/" prefix).
+# Override LLM_MODEL for another Go model (glm-5.2, qwen3.7-max, kimi-k2.7-code…).
+DEFAULT_BASE_URL = "https://opencode.ai/zen/go/v1"
+DEFAULT_MODEL = "deepseek-v4-pro"
 USER_AGENT = "ai-news-monitor/0.1 (+https://github.com/jt9080/ai-news-claw)"
-# Free/trial models can be slow on a full digest payload; give them room. This
-# is a daily batch call with no interactive user waiting.
-TIMEOUT_SECONDS = 120
+# These reasoning models take ~80-95s on a full digest payload and vary; give
+# generous headroom. This is a daily batch call — no interactive user waiting.
+TIMEOUT_SECONDS = 240
 
 
 class LLMError(Exception):

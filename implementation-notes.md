@@ -93,12 +93,15 @@ confirmed the fallback. Design spec:
   dict (skipped = no relevant candidates to judge).
 - **Provider is OpenCode Zen** (OpenAI-compatible), all env-overridable
   (`OPENCODE_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`). No SDK — stdlib only.
-- **Default model is `deepseek-v4-flash-free`** (a free Zen model), not the paid
-  `gpt-5.4-mini` the brainstorm picked. The live account had no credits (paid models
-  return `401 CreditsError`); the free model produced a strong agent-dev judged digest,
-  so it is the zero-cost default. Override `LLM_MODEL` for a paid/Claude model once the
-  workspace is funded. Auth is `Authorization: Bearer` (confirmed — `x-api-key` returns
-  "Missing API key").
+- **Provider endpoint is OpenCode Go** (`https://opencode.ai/zen/go/v1`), a flat-rate
+  subscription, default model `deepseek-v4-pro`. The plain Zen endpoint's paid models are
+  per-token and the account had no credits (`401 CreditsError`); the Go subscription
+  covers a set of open reasoning models (deepseek-v4-pro, glm-5.2, qwen3.7-max,
+  kimi-k2.7-code…) at no marginal cost. Model ids are **bare** (the `opencode-go/` prefix
+  from their config is rejected by the raw API). Auth is `Authorization: Bearer`.
+- **Timeout is 240s.** The Go reasoning models take ~80-95s on the full digest payload
+  and vary; 120s was too tight (caused a live judge failure). It's a daily batch call, so
+  a long timeout is fine, and the stand-in fallback still covers a genuine hang.
 - **`.env` is loaded in-process** by `run.py` at the CLI entry (`_load_dotenv`), not via
   shell `source` (a guardrail blocks sourcing secrets). Keeps the key out of the shell;
   `.env` is gitignored.
