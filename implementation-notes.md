@@ -21,6 +21,17 @@ published; a second run suppressed all 8 repeats. Design spec:
 `docs/superpowers/specs/2026-07-08-slice-2-feeds-memory-design.md`. Roadmap
 revised in `prd.html` §4/§7 (LLM decides everything; signals are a pre-filter).
 
+### Slice 3 — The LLM judge (2026-07-08)
+Replaced the stand-in with a real LLM judge via OpenCode Zen (OpenAI-compatible
+`/chat/completions`, stdlib `urllib`). New modules: `llm` (client, env-configured
+key/base-url/model, default `gpt-5.4-mini`), `judge` (prompt + robust JSON parse
+→ `DigestItem`s). `render` now shows the judge's `why` + `kind` and consumes a
+uniform `DigestItem`; `rank` became the fallback selector. On any judge failure
+`run.py` degrades to the stand-in + banner and records `judge: failed`. 87 tests
+green on 3.9.6 (HTTP fully mocked — no key needed in CI). Keyless live run
+confirmed the fallback. Design spec:
+`docs/superpowers/specs/2026-07-08-slice-3-llm-judge-design.md`.
+
 ## Open questions
 
 - **Points threshold (`>100`) and the keyword allowlist** are tuning knobs, not
@@ -67,4 +78,18 @@ revised in `prd.html` §4/§7 (LLM decides everything; signals are a pre-filter)
 - **`Candidate.summary`** added so GitHub repos match the keyword pre-filter on their
   description (repo names rarely contain "agent"/"llm").
 - **Stand-in selector is deliberately dumb** (round-robin interleave, no cross-source
-  normalization) and is deleted in S3 when the LLM owns selection.
+  normalization). *Update (S3):* not deleted — it is now the judge's fallback path.
+
+### Slice 3
+- **Stand-in kept as the judge fallback**, not deleted as the S2 spec anticipated. Judge
+  failure (no key / HTTP / bad JSON) degrades to it with a banner, so the run always
+  publishes.
+- **No persisted `Item` / cluster ids.** Clustering is ephemeral per run; the LLM decides
+  suppression from the per-candidate memory we feed it, and `run.py` stamps `reported_at`
+  on published member records. State stays record-level.
+- **Mechanical 2×-peak resurface retired.** `ingest` still stores `peak_signal`/`velocity`,
+  but they are now judge *inputs*; the LLM decides what a material jump is.
+- **`runs.json` `judge` status** (`ok` / `failed` / `skipped`) is stored in the `feeds`
+  dict (skipped = no relevant candidates to judge).
+- **Provider is OpenCode Zen** (OpenAI-compatible), default model `gpt-5.4-mini`, all
+  env-overridable (`OPENCODE_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`). No SDK — stdlib only.

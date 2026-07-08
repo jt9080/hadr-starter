@@ -16,8 +16,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
-from newsclaw import github, hackernews, ingest, rank, relevance, state
-from newsclaw.models import Run
+from newsclaw import github, hackernews, ingest, judge, rank, relevance, state
+from newsclaw.models import DigestItem, Run
 from newsclaw.render import render_dashboard
 from newsclaw.window import compute_window
 
@@ -46,27 +46,46 @@ def main(
     records, state_status = state.load_state(state_path)
     ingest.ingest(relevant, records, now)
 
-    # Count truly-suppressed repeats before the selector stamps reported_at.
-    suppressed = sum(
-        1 for c in relevant
-        if _reported_before(c, records) and not c.resurfaced
-    )
-    published = rank.select(relevant, records, now)
+    # The judge makes the editorial calls. If it is unavailable (no key, HTTP
+    # error, unparseable output) we fall back to the signal-ranked stand-in so
+    # the run still publishes.
+    judge_failed = False
+    if not relevant:
+        items = []
+        judge_status = "skipped"
+    else:
+        try:
+            items = judge.judge(relevant, records, now)
+            judge_status = "ok"
+        except judge.JudgeUnavailable:
+            judge_failed = True
+            judge_status = "failed"
+            items = [DigestItem.from_candidate(c) for c in rank.select(relevant, records, now)]
 
-    html = render_dashboard(published, (start, end), feeds, now)
+    # Stamp reported_at on every published member so tomorrow suppresses it.
+    now_iso = now.isoformat()
+    for item in items:
+        for c in item.sources:
+            rec = records.get(f"{c.source}:{c.source_id}")
+            if rec is not None:
+                rec.reported_at = now_iso
+
+    html = render_dashboard(items, (start, end), feeds, now, judge_failed)
     output_path.write_text(html, encoding="utf-8")
 
     state.save_state(state_path, records)
 
+    published_ids = {(c.source, c.source_id) for item in items for c in item.sources}
     counts = {
         "candidates": len(candidates),
         "kept": len(relevant),
         "new": sum(1 for c in relevant if c.is_new),
-        "resurfaced": sum(1 for c in relevant if c.resurfaced),
-        "suppressed": suppressed,
-        "published": len(published),
+        "resurfaced": sum(1 for item in items if item.resurfaced),
+        "suppressed": len(relevant) - len(published_ids),
+        "published": len(items),
     }
     feed_health = {feed.source: feed.status for feed in feeds}
+    feed_health["judge"] = judge_status
     state.append_run(runs_path, Run(
         run_at=now.isoformat(),
         window={"start": start.isoformat(), "end": end.isoformat()},
@@ -84,11 +103,6 @@ def main(
         f"suppressed={counts['suppressed']} published={counts['published']} "
         f"-> {output_path}"
     )
-
-
-def _reported_before(candidate, records) -> bool:
-    rec = records.get(f"{candidate.source}:{candidate.source_id}")
-    return rec is not None and rec.reported_at is not None
 
 
 if __name__ == "__main__":
