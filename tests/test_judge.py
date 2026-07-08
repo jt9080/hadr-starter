@@ -22,6 +22,16 @@ def cand(source, sid, title="New agent framework", value=300, is_new=True,
     return c
 
 
+def mkitem(ids, **over):
+    """A structurally-valid judged item; pass field=None to drop that field."""
+    d = {"ids": ids, "title": "Story", "url": "https://example.com/1",
+         "what": "what happened", "why": "why it matters",
+         "for_builders": "builder takeaway", "kind": "repo",
+         "topics": ["agent"], "resurfaced": False}
+    d.update(over)
+    return {k: v for k, v in d.items() if v is not None}
+
+
 def reply(items):
     return json.dumps({"items": items})
 
@@ -36,49 +46,69 @@ class TestBuildMessages(unittest.TestCase):
             reported_at="2026-07-05T00:00:00+00:00")}
         system, user = judge.build_messages([c], records, NOW)
         self.assertIn("hn:42", user)
-        self.assertIn("2026-07-05T00:00:00+00:00", user)  # reported_at surfaced
-        self.assertIn("280", user)                        # peak surfaced
-        self.assertRegex(system.lower(), r"agent")        # policy names agent-dev
+        self.assertIn("2026-07-05T00:00:00+00:00", user)
+        self.assertIn("280", user)
+
+    def test_system_prompt_asks_for_what_why_for_builders(self):
+        system, _ = judge.build_messages([cand("hackernews", "1")], {}, NOW)
+        low = system.lower()
+        self.assertIn("what", low)
+        self.assertIn("why", low)
+        self.assertRegex(low, r"builder")
 
 
 class TestJudge(unittest.TestCase):
-    def test_maps_valid_response_to_digest_items_in_order(self):
+    def test_maps_three_text_fields_in_order(self):
         cs = [cand("github", "acme/lib", "acme/lib"), cand("hackernews", "42")]
         resp = reply([
-            {"ids": ["hn:42"], "title": "Agent thread", "url": "https://example.com/42",
-             "kind": "discussion", "topics": ["agent"], "why": "devs debate agents", "resurfaced": False},
-            {"ids": ["gh:acme/lib"], "title": "acme/lib", "url": "https://example.com/acme/lib",
-             "kind": "repo", "topics": ["multiagent"], "why": "new framework", "resurfaced": False},
+            mkitem(["hn:42"], title="Thread", what="devs discuss agents",
+                   why="signals interest", for_builders="watch this pattern"),
+            mkitem(["gh:acme/lib"], title="acme/lib", what="new framework",
+                   why="fills a gap", for_builders="try it for orchestration"),
         ])
         with mock.patch("newsclaw.llm.complete", return_value=resp):
             items = judge.judge(cs, {}, NOW)
-        self.assertEqual([i.title for i in items], ["Agent thread", "acme/lib"])
-        self.assertEqual(items[0].why, "devs debate agents")
-        self.assertEqual(items[1].sources[0].source_id, "acme/lib")
+        self.assertEqual([i.title for i in items], ["Thread", "acme/lib"])
+        self.assertEqual(items[0].what, "devs discuss agents")
+        self.assertEqual(items[0].why, "signals interest")
+        self.assertEqual(items[0].for_builders, "watch this pattern")
+
+    def test_for_builders_is_optional(self):
+        cs = [cand("hackernews", "42")]
+        with mock.patch("newsclaw.llm.complete",
+                        return_value=reply([mkitem(["hn:42"], for_builders=None)])):
+            items = judge.judge(cs, {}, NOW)
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].for_builders, "")
+
+    def test_missing_what_is_dropped(self):
+        cs = [cand("hackernews", "42")]
+        with mock.patch("newsclaw.llm.complete",
+                        return_value=reply([mkitem(["hn:42"], what=None)])):
+            self.assertEqual(judge.judge(cs, {}, NOW), [])
+
+    def test_missing_why_is_dropped(self):
+        cs = [cand("hackernews", "42")]
+        with mock.patch("newsclaw.llm.complete",
+                        return_value=reply([mkitem(["hn:42"], why=None)])):
+            self.assertEqual(judge.judge(cs, {}, NOW), [])
 
     def test_unknown_ids_are_dropped(self):
         cs = [cand("hackernews", "42")]
         resp = reply([
-            {"ids": ["gh:ghost"], "title": "x", "url": "u", "why": "w"},          # all unknown -> dropped
-            {"ids": ["hn:42", "gh:ghost"], "title": "keep", "url": "u", "why": "w"},  # partial -> keep known
+            mkitem(["gh:ghost"], title="gone"),
+            mkitem(["hn:42", "gh:ghost"], title="keep"),
         ])
         with mock.patch("newsclaw.llm.complete", return_value=resp):
             items = judge.judge(cs, {}, NOW)
         self.assertEqual([i.title for i in items], ["keep"])
         self.assertEqual(len(items[0].sources), 1)
 
-    def test_entry_missing_required_field_is_dropped(self):
-        cs = [cand("hackernews", "42")]
-        resp = reply([{"ids": ["hn:42"], "title": "no why here", "url": "u"}])  # missing why
-        with mock.patch("newsclaw.llm.complete", return_value=resp):
-            self.assertEqual(judge.judge(cs, {}, NOW), [])
-
     def test_code_fenced_json_still_parses(self):
         cs = [cand("hackernews", "42")]
-        fenced = "```json\n" + reply([{"ids": ["hn:42"], "title": "t", "url": "u", "why": "w"}]) + "\n```"
+        fenced = "```json\n" + reply([mkitem(["hn:42"])]) + "\n```"
         with mock.patch("newsclaw.llm.complete", return_value=fenced):
-            items = judge.judge(cs, {}, NOW)
-        self.assertEqual(len(items), 1)
+            self.assertEqual(len(judge.judge(cs, {}, NOW)), 1)
 
     def test_malformed_json_raises_judge_unavailable(self):
         with mock.patch("newsclaw.llm.complete", return_value="not json at all"):
@@ -99,9 +129,8 @@ class TestJudge(unittest.TestCase):
     def test_retries_once_on_llm_error_then_succeeds(self):
         from newsclaw.llm import LLMError
         cs = [cand("hackernews", "42")]
-        good = reply([{"ids": ["hn:42"], "title": "t", "url": "u", "why": "w"}])
         with mock.patch("newsclaw.llm.complete",
-                        side_effect=[LLMError("timeout"), good]) as m:
+                        side_effect=[LLMError("timeout"), reply([mkitem(["hn:42"])])]) as m:
             items = judge.judge(cs, {}, NOW)
         self.assertEqual(len(items), 1)
         self.assertEqual(m.call_count, 2)

@@ -64,7 +64,10 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .item h2 { font-size: 1.08rem; line-height: 1.3; margin: 0 0 0.4rem; font-weight: 620; letter-spacing: -0.01em; }
 .item h2 a { text-decoration: none; }
 .item h2 a:hover { text-decoration: underline; }
-.why { color: var(--ink); font-size: 0.95rem; margin: 0 0 0.55rem; }
+.what { color: var(--ink); font-size: 0.96rem; margin: 0 0 0.4rem; }
+.why { color: var(--ink); font-size: 0.92rem; margin: 0 0 0.35rem; }
+.fb { color: var(--muted); font-size: 0.9rem; margin: 0 0 0.55rem; }
+.lbl { font-family: ui-monospace, Menlo, monospace; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); margin-right: 0.4rem; }
 .kind { font-size: 0.63rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 5px; border: 1px solid var(--line); color: var(--muted); }
 .line { display: flex; flex-wrap: wrap; gap: 0.5rem 0.7rem; align-items: center; font-size: 0.82rem; }
 .chip { font-size: 0.63rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 5px; background: var(--accent-soft); color: var(--accent); }
@@ -121,16 +124,28 @@ def _source_bits(c: Candidate) -> str:
     return "\n          ".join(bits)
 
 
+def _text_block(item: DigestItem) -> str:
+    """What / Why / For-builders lines, each shown only when non-empty (the
+    stand-in fallback leaves them blank, so its cards stay title + signal)."""
+    parts = []
+    if item.what:
+        parts.append(f'<p class="what">{escape(item.what)}</p>')
+    if item.why:
+        parts.append(f'<p class="why"><span class="lbl">Why</span>{escape(item.why)}</p>')
+    if item.for_builders:
+        parts.append(f'<p class="fb"><span class="lbl">For builders</span>{escape(item.for_builders)}</p>')
+    return ("\n        " + "\n        ".join(parts)) if parts else ""
+
+
 def _render_item(rank_num: int, item: DigestItem, now: datetime) -> str:
     topics = "".join(f'<span class="topic">{escape(t)}</span>' for t in item.topics)
     sources = "\n          ".join(_source_bits(c) for c in item.sources)
-    why = f'\n        <p class="why">{escape(item.why)}</p>' if item.why else ""
     primary = item.sources[0]
     return f"""
     <article class="item">
       <div class="rank">{rank_num}</div>
       <div class="body">
-        <h2><a href="{escape(item.url)}">{escape(item.title)}</a></h2>{why}
+        <h2><a href="{escape(item.url)}">{escape(item.title)}</a></h2>{_text_block(item)}
         <div class="line">
           {_tag(item)}
           <span class="kind">{escape(item.kind)}</span>

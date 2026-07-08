@@ -35,12 +35,17 @@ memory, planning, geospatial agents), then general AI.
 - Suppress any story whose memory.reported_at is set, UNLESS its signal has made a \
 material jump since (use memory.peak_signal and velocity to judge).
 - Return 5-8 items on a normal day; fewer on a quiet day; never pad.
-- Write a factual one-line `why` (why it matters to an agent builder). No hype.
+
+For each item write three fields, each ONE factual sentence (<= 25 words, no hype):
+- `what`: what the news actually is.
+- `why`: why it matters.
+- `for_builders`: the concrete takeaway for someone building agentic systems.
 
 Respond with ONLY a JSON object, no prose, in exactly this shape:
 {"items": [{"ids": ["hn:123","gh:owner/repo"], "title": "...", "url": "...", \
 "kind": "model|repo|paper|tool|post|discussion", "topics": ["multiagent"], \
-"why": "one line", "resurfaced": false}]}
+"what": "one sentence", "why": "one sentence", "for_builders": "one sentence", \
+"resurfaced": false}]}
 Use only ids present in the input. Order the list best-first."""
 
 
@@ -114,16 +119,19 @@ def _to_items(entries: list, by_id: dict) -> list:
         if not isinstance(entry, dict):
             continue
         sources = [by_id[i] for i in entry.get("ids", []) if i in by_id]
-        title, url, why = entry.get("title"), entry.get("url"), entry.get("why")
-        if not sources or not title or not url or not why:
-            continue  # drop items with no resolvable source or missing essentials
+        title, url = entry.get("title"), entry.get("url")
+        what, why = entry.get("what"), entry.get("why")
+        if not sources or not title or not url or not what or not why:
+            continue  # drop items missing a resolvable source or an essential field
         kind = entry.get("kind") or ("repo" if sources[0].source == "github" else "post")
         topics = entry.get("topics")
         if not isinstance(topics, list) or not topics:
             topics = sorted({t for s in sources for t in s.topics})
         items.append(DigestItem(
-            title=str(title), url=str(url), why=str(why), kind=str(kind),
-            topics=topics,
+            title=str(title), url=str(url),
+            what=str(what), why=str(why),
+            for_builders=str(entry.get("for_builders") or ""),
+            kind=str(kind), topics=topics,
             resurfaced=bool(entry.get("resurfaced")) or any(s.resurfaced for s in sources),
             is_new=all(s.is_new for s in sources),
             sources=sources,

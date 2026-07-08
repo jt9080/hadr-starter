@@ -37,10 +37,12 @@ def paths(tmp):
             "runs_path": Path(tmp) / "runs.json"}
 
 
-def judged_reply(ids, why="because it matters"):
+def judged_reply(ids):
     return json.dumps({"items": [
         {"ids": ids, "title": "Judged story", "url": "https://example.com/1",
-         "kind": "post", "topics": ["agent"], "why": why, "resurfaced": False}
+         "kind": "post", "topics": ["agent"],
+         "what": "a new thing shipped", "why": "because it matters",
+         "for_builders": "wire it into your agent loop", "resurfaced": False}
     ]})
 
 
@@ -55,7 +57,9 @@ class TestJudgePath(unittest.TestCase):
                  mock.patch("newsclaw.llm.complete", return_value=judged_reply(["hn:1"])):
                 summary = run.main(now=NOW, **p)
             html = p["output_path"].read_text()
+            self.assertIn("a new thing shipped", html)         # the what line
             self.assertIn("because it matters", html)          # the why line
+            self.assertIn("wire it into your agent loop", html)  # for-builders line
             self.assertIn("Judged story", html)
             self.assertIn("judge", summary)
             log = json.loads(p["runs_path"].read_text())

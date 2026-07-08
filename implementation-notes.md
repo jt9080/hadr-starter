@@ -32,6 +32,16 @@ green on 3.9.6 (HTTP fully mocked — no key needed in CI). Keyless live run
 confirmed the fallback. Design spec:
 `docs/superpowers/specs/2026-07-08-slice-3-llm-judge-design.md`.
 
+### Slice 3 — richer cards (2026-07-08, folded into PR #6)
+Expanded each judged item from a single one-line `why` to three one-sentence
+fields: `what` (what the news is), `why` (why it matters), `for_builders` (the
+agent-builder takeaway). `DigestItem` carries all three; `judge` requires
+`what`+`why` (drops the item otherwise) and treats `for_builders` as optional;
+`render` shows three labeled lines, each omitted when blank (so stand-in
+fallback cards stay title+signal). PRD §6 "full summarization" revised to allow
+this bounded three-sentence block (still not article/paper summaries). No spec
+doc (user opted to skip — straightforward). 95 tests green.
+
 ## Open questions
 
 - **Points threshold (`>100`) and the keyword allowlist** are tuning knobs, not

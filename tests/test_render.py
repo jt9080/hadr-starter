@@ -31,11 +31,12 @@ def gh_c(name="omnigent-ai/omnigent", stars=6653, velocity=120.0):
     return c
 
 
-def item(sources, why="", kind="post", topics=None, resurfaced=False, is_new=True):
+def item(sources, what="", why="", for_builders="", kind="post", topics=None,
+         resurfaced=False, is_new=True):
     return DigestItem(
-        title=sources[0].title, url=sources[0].url, why=why, kind=kind,
-        topics=topics or ["agent"], resurfaced=resurfaced, is_new=is_new,
-        sources=sources,
+        title=sources[0].title, url=sources[0].url, what=what, why=why,
+        for_builders=for_builders, kind=kind, topics=topics or ["agent"],
+        resurfaced=resurfaced, is_new=is_new, sources=sources,
     )
 
 
@@ -55,10 +56,23 @@ class TestRelativeAge(unittest.TestCase):
 
 
 class TestCards(unittest.TestCase):
-    def test_shows_why_when_present(self):
-        html = render_dashboard([item([hn_c()], why="devs are adopting this")],
-                                WINDOW, feeds(), NOW)
-        self.assertIn("devs are adopting this", html)
+    def test_shows_what_why_for_builders_with_labels(self):
+        html = render_dashboard([item(
+            [hn_c()], what="a new agent framework shipped",
+            why="it standardizes orchestration",
+            for_builders="swap agents without rewriting glue")],
+            WINDOW, feeds(), NOW)
+        self.assertIn("a new agent framework shipped", html)
+        self.assertIn("it standardizes orchestration", html)
+        self.assertIn("swap agents without rewriting glue", html)
+        low = html.lower()
+        self.assertRegex(low, r"why")
+        self.assertRegex(low, r"builder")
+
+    def test_omits_empty_text_fields(self):
+        # a fallback item (no LLM text) shows neither why nor for-builders labels
+        html = render_dashboard([item([hn_c()])], WINDOW, feeds(), NOW)
+        self.assertNotRegex(html, r"For builders")
 
     def test_shows_kind(self):
         html = render_dashboard([item([gh_c()], kind="repo")], WINDOW, feeds(), NOW)
@@ -90,12 +104,14 @@ class TestCards(unittest.TestCase):
                                 WINDOW, feeds(), NOW)
         self.assertIn("250", html)
 
-    def test_escapes_html_in_title_and_why(self):
+    def test_escapes_html_in_text_fields(self):
         html = render_dashboard(
-            [item([hn_c(title="<script>x</script>")], why="<b>bad</b>")],
+            [item([hn_c(title="<script>x</script>")], what="<i>w</i>",
+                  why="<b>bad</b>", for_builders="<u>fb</u>")],
             WINDOW, feeds(), NOW)
         self.assertNotIn("<script>x", html)
         self.assertNotIn("<b>bad</b>", html)
+        self.assertNotIn("<i>w</i>", html)
         self.assertIn("&lt;script&gt;", html)
 
 

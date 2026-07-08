@@ -73,9 +73,11 @@ class TestDigestItem(unittest.TestCase):
         c.resurfaced, c.is_new = False, True
         return c
 
-    def test_from_candidate_wraps_with_empty_why(self):
+    def test_from_candidate_wraps_with_empty_text_fields(self):
         item = DigestItem.from_candidate(self._cand("github"))
+        self.assertEqual(item.what, "")
         self.assertEqual(item.why, "")
+        self.assertEqual(item.for_builders, "")
         self.assertEqual(item.kind, "repo")
         self.assertEqual(item.title, "Omni")
         self.assertEqual(item.sources, [self._cand("github")])

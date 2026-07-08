@@ -82,7 +82,9 @@ class DigestItem:
 
     title: str
     url: str
-    why: str            # one-line significance; "" on the fallback path
+    what: str           # one sentence: what the news is; "" on the fallback path
+    why: str            # one sentence: why it matters; "" on the fallback path
+    for_builders: str   # one sentence: takeaway for agent builders; may be ""
     kind: str           # model|repo|paper|tool|post|discussion
     topics: list
     resurfaced: bool
@@ -93,7 +95,7 @@ class DigestItem:
     def from_candidate(cls, c) -> "DigestItem":
         kind = "repo" if c.source == "github" else "post"
         return cls(
-            title=c.title, url=c.url, why="", kind=kind,
+            title=c.title, url=c.url, what="", why="", for_builders="", kind=kind,
             topics=list(c.topics), resurfaced=c.resurfaced,
             is_new=c.is_new, sources=[c],
         )
