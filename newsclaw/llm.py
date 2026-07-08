@@ -38,8 +38,10 @@ def complete(system: str, user: str, timeout: int = TIMEOUT_SECONDS) -> str:
     if not key:
         raise LLMError("OPENCODE_API_KEY is not set")
 
-    base = os.environ.get("LLM_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
-    model = os.environ.get("LLM_MODEL", DEFAULT_MODEL)
+    # Use `or` not get-with-default: CI injects unset repo vars (${{ vars.X }})
+    # as empty strings, and an empty base URL / model must fall back, not stick.
+    base = (os.environ.get("LLM_BASE_URL") or DEFAULT_BASE_URL).rstrip("/")
+    model = os.environ.get("LLM_MODEL") or DEFAULT_MODEL
     url = f"{base}/chat/completions"
 
     body = json.dumps({

@@ -49,6 +49,25 @@ class TestComplete(unittest.TestCase):
         self.assertEqual(roles, ["system", "user"])
         self.assertEqual(captured["body"]["messages"][1]["content"], "USER")
 
+    def test_empty_env_vars_fall_back_to_defaults(self):
+        # CI passes ${{ vars.LLM_MODEL }} etc; an unset repo var arrives as "".
+        # Empty must mean "use the default", not an empty base URL / model.
+        captured = {}
+
+        def spy(req, timeout=None):
+            captured["url"] = req.full_url
+            captured["body"] = json.loads(req.data.decode("utf-8"))
+            cm = mock.MagicMock()
+            cm.__enter__.return_value = fake_completion("ok")
+            return cm
+
+        env = {"OPENCODE_API_KEY": "sk-x", "LLM_MODEL": "", "LLM_BASE_URL": ""}
+        with mock.patch.dict("os.environ", env, clear=True):
+            with mock.patch("newsclaw.llm.urlopen", side_effect=spy):
+                llm.complete("s", "u")
+        self.assertTrue(captured["url"].startswith(llm.DEFAULT_BASE_URL))
+        self.assertEqual(captured["body"]["model"], llm.DEFAULT_MODEL)
+
     def test_http_error_raises_llmerror(self):
         with mock.patch.dict("os.environ", {"OPENCODE_API_KEY": "sk-x"}, clear=True):
             err = HTTPError("u", 429, "rate limit", {}, None)
