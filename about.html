@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Morning Claw — the AI news you'd have found eventually</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2080%20100'%3E%3Cg%20fill='%23990F3D'%3E%3Cpath%20d='M16%2010%20Q34%2040%2044%2088%20Q40%2092%2036%2090%20Q22%2048%2010%2016%20Q12%2010%2016%2010z'/%3E%3Cpath%20d='M40%204%20Q54%2036%2062%2080%20Q58%2084%2054%2082%20Q44%2042%2034%2010%20Q36%204%2040%204z'/%3E%3Cpath%20d='M62%2012%20Q72%2038%2076%2070%20Q72%2074%2068%2072%20Q60%2042%2054%2018%20Q57%2012%2062%2012z'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,600;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FFF1E5; --ink:#1A1817; --body:#33302E; --muted:#8F857B;
+  --rule:#1A1817; --hairline:#E1CDBB; --claret:#990F3D; --teal:#0D7680;
+  --paper2:#FBE8D8;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--paper); color:var(--body);
+  font-family:'Source Serif 4',Georgia,serif; font-size:1.05rem; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(rgba(120,90,60,.04) 1px, transparent 1px);
+  background-size:4px 4px;
+  overflow-x:hidden;
+}
+.wrap{max-width:74rem; margin:0 auto; padding:0 1.4rem;}
+.serif{font-family:'Playfair Display',Georgia,serif;}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;}
+a{color:var(--claret);}
+
+/* ---------- MASTHEAD ---------- */
+.masthead{border-bottom:3px double var(--rule); padding:1.6rem 0 1rem; text-align:center; position:relative;}
+.eyebrow{font-family:'JetBrains Mono',monospace; font-size:.66rem; letter-spacing:.32em; text-transform:uppercase; color:var(--claret); margin:0 0 .5rem;}
+.mastrow{display:flex; align-items:center; justify-content:center; gap:1.1rem; flex-wrap:wrap;}
+.clawmark{width:2.6rem; height:auto; flex:0 0 auto;}
+.clawmark path{fill:none; stroke:var(--claret); stroke-width:5; stroke-linecap:round;
+  stroke-dasharray:200; stroke-dashoffset:200; animation:claw .9s ease-out .3s forwards;}
+.clawmark path:nth-child(2){animation-delay:.45s;}
+.clawmark path:nth-child(3){animation-delay:.6s;}
+@keyframes claw{to{stroke-dashoffset:0; fill:var(--claret);}}
+h1.title{font-family:'Playfair Display',serif; font-weight:900; font-size:clamp(2.6rem,8vw,5.2rem);
+  line-height:.95; letter-spacing:-.01em; color:var(--ink); margin:0;}
+.dateline{font-family:'JetBrains Mono',monospace; font-size:.68rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--muted); margin:.7rem 0 0; border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline);
+  padding:.45rem 0; display:inline-block;}
+
+/* ---------- TICKER ---------- */
+.ticker{background:var(--ink); color:var(--paper); overflow:hidden; white-space:nowrap; border-bottom:1px solid var(--rule);}
+.ticker .track{display:inline-block; padding:.5rem 0; font-family:'JetBrains Mono',monospace; font-size:.72rem;
+  letter-spacing:.1em; text-transform:uppercase; animation:scroll 34s linear infinite;}
+.ticker b{color:#F0C36B;}
+.ticker .sep{color:var(--claret); padding:0 1.1rem;}
+@keyframes scroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+.ticker:hover .track{animation-play-state:paused;}
+
+/* ---------- HERO / LEAD ---------- */
+.hero{padding:3rem 0 2rem; border-bottom:1px solid var(--hairline);}
+.kicker{font-family:'JetBrains Mono',monospace; font-size:.7rem; font-weight:700; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--claret); margin:0 0 1rem;}
+.deck{font-family:'Playfair Display',serif; font-weight:800; font-size:clamp(2rem,5.5vw,3.6rem);
+  line-height:1.04; color:var(--ink); margin:0 0 1.3rem; text-wrap:balance;}
+.deck .u{background:linear-gradient(transparent 62%, rgba(153,15,61,.22) 0); }
+.standfirst{font-size:clamp(1.05rem,2vw,1.3rem); max-width:44rem; margin:0 0 .5rem;}
+.standfirst .drop{float:left; font-family:'Playfair Display',serif; font-weight:900; color:var(--claret);
+  font-size:4.4rem; line-height:.72; padding:.35rem .5rem 0 0;}
+.byline{font-family:'JetBrains Mono',monospace; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--muted); margin-top:1.4rem;}
+
+/* ---------- STATS ---------- */
+.stats{display:grid; grid-template-columns:repeat(5,1fr); gap:0; border-block:2px solid var(--rule);
+  margin:2.4rem 0; text-align:center;}
+.stat{padding:1.5rem .5rem; border-right:1px solid var(--hairline); position:relative;}
+.stat:last-child{border-right:none;}
+.stat .num{font-family:'Playfair Display',serif; font-weight:800; font-size:clamp(1.8rem,4vw,2.8rem);
+  color:var(--claret); line-height:1; display:block;}
+.stat.spared .num{color:var(--teal);}
+.stat .lab{font-family:'JetBrains Mono',monospace; font-size:.6rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--muted); margin-top:.5rem; display:block;}
+.stat .ast{color:var(--claret); font-size:.7em; vertical-align:super;}
+
+/* ---------- DEPARTMENTS ---------- */
+.dept{padding:2.6rem 0; border-bottom:1px solid var(--hairline);}
+.depthead{font-family:'JetBrains Mono',monospace; font-size:.68rem; font-weight:700; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--claret); margin:0 0 .3rem; display:flex; align-items:center; gap:.8rem;}
+.depthead::after{content:""; flex:1; height:1px; background:var(--hairline);}
+.dept h2{font-family:'Playfair Display',serif; font-weight:700; font-size:clamp(1.7rem,4vw,2.6rem);
+  line-height:1.1; color:var(--ink); margin:.4rem 0 1.2rem; text-wrap:balance;}
+.cols{column-count:2; column-gap:2.6rem; column-rule:1px solid var(--hairline);}
+.cols p{margin:0 0 1rem;}
+.cols p:first-child::first-letter{font-family:'Playfair Display',serif; font-weight:800; font-size:3.1rem;
+  float:left; line-height:.7; padding:.3rem .4rem 0 0; color:var(--claret);}
+.lede{font-size:1.15rem; font-style:italic;}
+
+/* who — subscriber card */
+.who{display:grid; grid-template-columns:1.4fr 1fr; gap:2.6rem; align-items:start;}
+.decision{border:2px solid var(--claret); padding:1.4rem 1.5rem; background:var(--paper2);}
+.decision .q{font-family:'Playfair Display',serif; font-style:italic; font-weight:700; font-size:1.35rem;
+  color:var(--ink); margin:.2rem 0 .8rem; line-height:1.25;}
+.decision .a{margin:0; font-size:.98rem;}
+.stamp-tag{display:inline-block; transform:rotate(-4deg); border:2px solid var(--teal); color:var(--teal);
+  font-family:'JetBrains Mono',monospace; font-size:.64rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  padding:.3rem .6rem; margin-top:1rem;}
+
+/* corrections — the "does not do" */
+.corrections{list-style:none; margin:0; padding:0;}
+.corrections li{padding:1rem 0 1rem 2.4rem; border-bottom:1px dashed var(--hairline); position:relative;}
+.corrections li::before{content:"✗"; position:absolute; left:0; top:.9rem; color:var(--claret);
+  font-family:'JetBrains Mono',monospace; font-weight:700; font-size:1.1rem;}
+.corrections b{font-family:'Playfair Display',serif; font-weight:700; color:var(--ink);}
+
+/* ---------- CTA ---------- */
+.cta{text-align:center; padding:3.4rem 0 3rem;}
+.cta .kicker{justify-content:center; display:block;}
+.cta h2{font-family:'Playfair Display',serif; font-weight:900; font-size:clamp(2rem,5vw,3.2rem);
+  color:var(--ink); margin:.3rem 0 1.6rem; line-height:1.05;}
+.press{display:inline-block; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:.95rem;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--paper); background:var(--claret);
+  padding:1rem 2.2rem; text-decoration:none; border:2px solid var(--claret);
+  box-shadow:6px 6px 0 var(--ink); transition:transform .12s ease, box-shadow .12s ease;}
+.press:hover{transform:translate(3px,3px); box-shadow:3px 3px 0 var(--ink);}
+.press:active{transform:translate(6px,6px); box-shadow:0 0 0 var(--ink);}
+.cta .fine{font-family:'JetBrains Mono',monospace; font-size:.64rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); margin-top:1.3rem;}
+
+/* ---------- FOOTER ---------- */
+footer{border-top:3px double var(--rule); padding:2rem 0 3rem; text-align:center;}
+footer .fname{font-family:'Playfair Display',serif; font-weight:700; font-size:1.3rem; color:var(--ink);}
+footer p{font-family:'JetBrains Mono',monospace; font-size:.64rem; letter-spacing:.08em; color:var(--muted);
+  max-width:38rem; margin:.8rem auto 0; line-height:1.7; text-transform:uppercase;}
+
+/* ---------- REVEAL ANIMATION ---------- */
+.reveal{opacity:0; transform:translateY(24px);}
+.reveal.in{opacity:1; transform:none; transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.3,1);}
+.page{animation:drop 1s cubic-bezier(.2,.8,.2,1) both;}
+@keyframes drop{from{opacity:0; transform:translateY(-30px) rotate(-.5deg);} to{opacity:1; transform:none;}}
+
+@media (max-width:52rem){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .stat:nth-child(2){border-right:none;}
+  .stat{border-bottom:1px solid var(--hairline);}
+  .cols{column-count:1;}
+  .who{grid-template-columns:1fr;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important; transition:none !important;}
+  html{scroll-behavior:auto;}
+  .clawmark path{stroke-dashoffset:0; fill:var(--claret);}
+  .reveal{opacity:1; transform:none;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="ticker" aria-hidden="true">
+  <span class="track">
+    174 STORIES SCANNED <span class="sep">·</span> 8 PUBLISHED <span class="sep">·</span> <b>166 SPARED</b> <span class="sep">·</span> 6 FEEDS WATCHED <span class="sep">·</span> 0 TWEETS READ <span class="sep">·</span> AGENT-DEV NEWS FIRST <span class="sep">·</span> PUBLISHED 08:00 SGT <span class="sep">·</span> THEN IT LEAVES YOU ALONE <span class="sep">·</span>
+    174 STORIES SCANNED <span class="sep">·</span> 8 PUBLISHED <span class="sep">·</span> <b>166 SPARED</b> <span class="sep">·</span> 6 FEEDS WATCHED <span class="sep">·</span> 0 TWEETS READ <span class="sep">·</span> AGENT-DEV NEWS FIRST <span class="sep">·</span> PUBLISHED 08:00 SGT <span class="sep">·</span> THEN IT LEAVES YOU ALONE <span class="sep">·</span>
+  </span>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="eyebrow">Special Advertising Edition · Do Not Recycle</p>
+    <div class="mastrow">
+      <svg class="clawmark" viewBox="0 0 80 100" aria-hidden="true">
+        <path d="M16 10 Q34 40 44 88 Q40 92 36 90 Q22 48 10 16 Q12 10 16 10z"/>
+        <path d="M40 4 Q54 36 62 80 Q58 84 54 82 Q44 42 34 10 Q36 4 40 4z"/>
+        <path d="M62 12 Q72 38 76 70 Q72 74 68 72 Q60 42 54 18 Q57 12 62 12z"/>
+      </svg>
+      <h1 class="title">The Morning Claw</h1>
+    </div>
+    <p class="dateline">Vol. I · The “Please Stop Refreshing Hacker News” Edition · Free, Obviously</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <p class="kicker">Extra — Read All About <em>Some</em> Of It</p>
+    <h2 class="deck">An AI Reads the Entire AI News Cycle <span class="u">So You Can Go Outside</span></h2>
+    <p class="standfirst"><span class="drop">E</span>very morning a small agent claws through Hacker News, GitHub, Hugging Face, arXiv, Reddit and a stack of lab blogs, then hands you the five-to-eight things that actually shipped or broke through. The other 166 are available anywhere, at any time, forever. You will not miss them.</p>
+    <p class="byline">Filed by an autonomous agent · Reviewed by nobody, on purpose</p>
+  </section>
+
+  <section class="stats reveal" id="stats">
+    <div class="stat"><span class="num" data-to="174">0</span><span class="lab">Stories scanned</span></div>
+    <div class="stat"><span class="num" data-to="8">0</span><span class="lab">Published</span></div>
+    <div class="stat spared"><span class="num" data-to="166">0</span><span class="lab">Spared your attention</span></div>
+    <div class="stat"><span class="num" data-to="6">0</span><span class="lab">Feeds watched</span></div>
+    <div class="stat"><span class="num" data-to="0">0</span><span class="lab">Tweets read<span class="ast">*</span></span></div>
+  </section>
+
+  <section class="dept reveal">
+    <p class="depthead">From the Editor's Desk</p>
+    <h2>Why a claw, and where it's clawing next</h2>
+    <div class="cols">
+      <p>The AI firehose is not a knowledge problem. It is a triage problem. There is no shortage of announcements; there is a shortage of afternoons. The Claw exists to close that gap — to read everything so the number of things <em>you</em> have to read stays in single digits.</p>
+      <p>It ranks agent-development news first — multiagent, subagents, skills, tool use, memory, planning — because that is the beat that changes what you build this quarter. Everything else in AI follows. Hard signals (stars and their velocity, points, upvotes, paper attention) build the shortlist; an LLM editor makes the final call and writes, in one plain sentence, why each item matters.</p>
+      <p>It has a memory. It remembers what it told you yesterday and refuses to sell you the same repository twice — unless the numbers genuinely jumped, in which case it will admit as much.</p>
+      <p><strong>Where it's headed:</strong> clustering the same story across sources into one entry instead of five; a sense of momentum, so you can see what's heating up rather than merely what's loud today; and a daily “if you have an hour, do this” assignment. What it will never become is a feed you have to scroll. That is the entire point of the exercise.</p>
+    </div>
+  </section>
+
+  <section class="dept reveal">
+    <p class="depthead">Circulation Department</p>
+    <h2>Who reads The Claw?</h2>
+    <div class="who">
+      <div>
+        <p class="lede">One person, mostly: the engineer building agentic systems who has exactly five minutes and strong opinions about how they're spent.</p>
+        <p>Not researchers chasing citations. Not executives who want a vibe. The reader who needs to know whether anything today is worth acting on — a tool to try, a model to swap in, a pattern worth stealing — before closing the tab and getting back to the actual work.</p>
+      </div>
+      <div class="decision">
+        <p class="depthead" style="color:var(--claret)">The decision it speeds up</p>
+        <p class="q">“Is there anything today I need to act on — or can I get back to work?”</p>
+        <p class="a">Most days, the honest answer is “get back to work.” The Claw is happy to be the thing that tells you so, in under five minutes, with receipts.</p>
+        <span class="stamp-tag">Verdict: usually close the tab</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="dept reveal">
+    <p class="depthead">Corrections &amp; Clarifications</p>
+    <h2>What The Claw deliberately does <em>not</em> do</h2>
+    <ul class="corrections">
+      <li><b>It does not predict the future.</b> It reports what shipped, not what a comment thread suspects might ship. Speculation is free and available elsewhere.</li>
+      <li><b>It does not read X/Twitter.</b> The API is paid and gated, the scraping is fragile and ToS-risky, and we value our remaining will to live. The newsletters already digest the good bits.</li>
+      <li><b>It does not rank by vibes.</b> Numbers build the shortlist; an editor with reasons makes the cut. If it can't say why something matters, it doesn't run.</li>
+      <li><b>It does not nag.</b> It publishes once, at 8am Singapore time, and then goes quiet. No push notifications. No “you're all caught up!” No streaks.</li>
+      <li><b>It does not hand you fifty items.</b> A busy day is eight. If it ever gives you fifty, assume it has been compromised and check the wiring.</li>
+    </ul>
+  </section>
+
+  <section class="cta reveal">
+    <p class="kicker">Hot Off The Press</p>
+    <h2>Today's edition is already set.</h2>
+    <a class="press" href="./">Read The Morning Claw &rarr;</a>
+    <p class="fine">* Zero. We're trying to keep it that way.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="fname serif">The Morning Claw</span>
+    <p>Set in Playfair Display &amp; Source Serif 4 · Typeset by a GitHub Action at an ungodly UTC hour · No trees, servers, or attention spans were harmed beyond the strict minimum · Built with standard library and spite</p>
+  </div>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reveals = [].slice.call(document.querySelectorAll('.reveal'));
+
+  function countUp(el){
+    var to = parseInt(el.getAttribute('data-to'), 10);
+    if (reduce || to === 0){ el.textContent = to; return; }
+    var start = null, dur = 1100;
+    function step(ts){
+      if(!start) start = ts;
+      var p = Math.min((ts - start)/dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(to * eased);
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  if(reduce){
+    reveals.forEach(function(r){ r.classList.add('in'); });
+    document.querySelectorAll('.stat .num').forEach(countUp);
+    return;
+  }
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting) return;
+      e.target.classList.add('in');
+      if(e.target.id === 'stats'){
+        e.target.querySelectorAll('.num').forEach(countUp);
+      }
+      io.unobserve(e.target);
+    });
+  }, {threshold:.25});
+
+  reveals.forEach(function(r){ io.observe(r); });
+})();
+</script>
+</body>
+</html>
