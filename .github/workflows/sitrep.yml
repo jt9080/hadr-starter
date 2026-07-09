@@ -14,6 +14,8 @@ on:
   schedule:
     # Daily at 00:07 UTC = 08:07 SGT — the morning digest. The :07 offset dodges
     # the top-of-hour congestion where GitHub drops scheduled runs under load.
+    # NOTE: the commit touching this file must have a GitHub-linked author email;
+    # an unattributable commit (null actor) silently disables the schedule.
     - cron: "7 0 * * *"
 
 # Never let two runs race the commit-back.

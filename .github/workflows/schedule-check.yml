@@ -1,6 +1,8 @@
 # Throwaway scheduling probe. Proves the `schedule` trigger fires on this repo
-# now that it's detached from the fork network — WITHOUT running the publishing
-# pipeline. It writes nothing and commits nothing (contents: read), so the live
+# now that (a) it's detached from the fork network and (b) this file was last
+# committed by a resolvable GitHub account — an empty git user.email made the
+# scheduler's actor null, which silently disables cron. Runs WITHOUT the
+# publishing pipeline. It writes nothing and commits nothing (contents: read), so the live
 # dashboard is untouched. Delete this file once a schedule-triggered run appears.
 name: Schedule check
 
