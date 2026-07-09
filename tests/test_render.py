@@ -162,8 +162,43 @@ class TestHealthAndBanners(unittest.TestCase):
 
     def test_header_and_doctype(self):
         html = render_dashboard([item([hn_c()])], WINDOW, feeds(), NOW)
-        self.assertIn("AI News Monitor", html)
+        self.assertIn("The Morning Claw", html)
         self.assertTrue(html.strip().lower().startswith("<!doctype html>"))
+
+
+class TestNewspaperChrome(unittest.TestCase):
+    def test_masthead_and_dateline(self):
+        html = render_dashboard([item([hn_c()])], WINDOW, feeds(), NOW)
+        self.assertIn("The Morning Claw", html)
+        self.assertRegex(html.lower(), r"morning edition")
+
+    def test_rail_lists_feeds_with_logos(self):
+        html = render_dashboard([item([hn_c()])], WINDOW, feeds(), NOW)
+        self.assertRegex(html.lower(), r"wire services")
+        # every feed row carries an inline SVG mark
+        self.assertGreaterEqual(html.count("<svg"), len(feeds()))
+
+    def test_source_chip_carries_logo(self):
+        html = render_dashboard([item([hn_c()])], WINDOW, feeds(), NOW)
+        self.assertRegex(html, r'<svg[^>]*>.*?</svg>\s*HN')
+
+    def test_hero_treatment_for_first_story_only(self):
+        html = render_dashboard(
+            [item([hn_c()], what="lead"), item([gh_c()], kind="repo", what="second")],
+            WINDOW, feeds(), NOW)
+        self.assertEqual(html.count('class="story hero"'), 1)
+        self.assertLess(html.index('class="story hero"'),
+                        html.index("second"))
+
+    def test_lead_story_labelled_others_unnumbered(self):
+        html = render_dashboard(
+            [item([hn_c()]), item([gh_c()], kind="repo")], WINDOW, feeds(), NOW)
+        self.assertEqual(html.count("Lead story"), 1)
+        self.assertNotRegex(html, r"No\.\s*\d")
+
+    def test_no_new_tag_but_back_survives(self):
+        html = render_dashboard([item([hn_c()])], WINDOW, feeds(), NOW)
+        self.assertNotIn(">new<", html.replace(" ", ""))
 
 
 if __name__ == "__main__":
