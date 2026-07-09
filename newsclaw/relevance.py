@@ -17,8 +17,12 @@ from newsclaw.models import Candidate
 # Agent-development terms first (ranked-first per CLAUDE.md), then the rest of AI.
 # Whole words only (optional trailing plural) — stems that collide with common
 # English ("skill"→"skilled") are spelled out to avoid false positives.
+# Multi-word interest phrases (e.g. "defense-tech") are matched as exact adjacent
+# words, so they widen the net without the noise of bare "defense"/"evaluation".
 ALLOWLIST = [
     "agentic", "multiagent", "subagent", "agent", "mcp", "skills",
+    "agent evaluation", "agent eval", "agentic benchmark",
+    "defense agent", "defense-tech", "defense tech",
     "llm", "gpt", "claude", "gemini", "llama", "mistral", "deepseek", "qwen",
     "openai", "anthropic", "huggingface", "hugging face", "mixtral",
     "rag", "transformer", "diffusion", "neural", "fine-tuning", "fine-tune",

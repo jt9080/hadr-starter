@@ -49,6 +49,20 @@ class TestFindTopics(unittest.TestCase):
         topics = find_topics("agent agent LLM", "")
         self.assertEqual(topics, sorted(set(topics)))
 
+    def test_interest_phrases_tag_specifically(self):
+        self.assertIn("agent evaluation", find_topics("A new agent evaluation harness", ""))
+        self.assertIn("agent eval", find_topics("Running an agent eval on GPT-5", ""))
+
+    def test_defense_tech_widens_without_agent_word(self):
+        # a defense-tech story with no "agent"/"agentic" still gets through
+        topics = find_topics("Anduril ships defense-tech autonomous recon system", "")
+        self.assertIn("defense-tech", topics)
+
+    def test_bare_evaluation_and_defense_do_not_match(self):
+        # the whole point of using phrases: broad single words stay out
+        self.assertEqual(find_topics("Annual performance evaluation at BigCo", ""), [])
+        self.assertEqual(find_topics("Missile defense budget increases", ""), [])
+
 
 class TestFilterRelevant(unittest.TestCase):
     def test_keeps_relevant_and_sets_topics(self):
