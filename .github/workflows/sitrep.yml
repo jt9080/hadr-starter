@@ -12,10 +12,10 @@ name: Morning sitrep
 on:
   workflow_dispatch: {}
   schedule:
-    # TEMP: every 10 minutes to verify scheduling works — this repo is a fork,
-    # where GitHub disables schedule triggers by default; the workflow was
-    # disable/enable-cycled to force re-registration. Revert to "7 0 * * *"
-    # (08:07 SGT) once a scheduled run lands. Cron is always UTC.
+    # TEMP: every 10 min for verification. NOTE: schedule triggers do NOT fire
+    # while this repo is a fork of tinkercademy/hadr-starter — GitHub disables
+    # cron on forks. Fix: Settings → Danger Zone → "Leave fork network". Once a
+    # scheduled run lands, switch to "7 0 * * *" (08:07 SGT daily). Cron is UTC.
     - cron: "7,17,27,37,47,57 * * * *"
 
 # Never let two runs race the commit-back.
