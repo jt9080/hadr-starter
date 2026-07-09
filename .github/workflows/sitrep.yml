@@ -12,10 +12,11 @@ name: Morning sitrep
 on:
   workflow_dispatch: {}
   schedule:
-    # TEMP: every hour at :07 to verify scheduling works. Avoid :00 — GitHub
-    # drops top-of-hour runs under load. Revert to "7 0 * * *" (08:07 SGT) once
-    # confirmed. Cron is always UTC.
-    - cron: "7 * * * *"
+    # TEMP: every 10 minutes to verify scheduling works — this repo is a fork,
+    # where GitHub disables schedule triggers by default; the workflow was
+    # disable/enable-cycled to force re-registration. Revert to "7 0 * * *"
+    # (08:07 SGT) once a scheduled run lands. Cron is always UTC.
+    - cron: "7,17,27,37,47,57 * * * *"
 
 # Never let two runs race the commit-back.
 concurrency:
