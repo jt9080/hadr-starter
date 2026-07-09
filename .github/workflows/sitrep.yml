@@ -12,8 +12,10 @@ name: Morning sitrep
 on:
   workflow_dispatch: {}
   schedule:
-    # 00:00 UTC = 08:00 Asia/Singapore. Cron is always UTC.
-    - cron: "0 0 * * *"
+    # TEMP: every hour at :07 to verify scheduling works. Avoid :00 — GitHub
+    # drops top-of-hour runs under load. Revert to "7 0 * * *" (08:07 SGT) once
+    # confirmed. Cron is always UTC.
+    - cron: "7 * * * *"
 
 # Never let two runs race the commit-back.
 concurrency:
